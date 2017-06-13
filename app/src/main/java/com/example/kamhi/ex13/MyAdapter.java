@@ -1,5 +1,6 @@
 package com.example.kamhi.ex13;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
@@ -44,8 +45,8 @@ public class MyAdapter extends ResourceCursorAdapter {
 
         if (number != -1){
             tv.setText(Integer.toString(number));
-            view.setOnClickListener(null);
-            view.setOnLongClickListener(new View.OnLongClickListener() {
+          //  view.setOnClickListener(null);
+       /*     view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     dbh.deleteItem((Integer)v.getTag());
@@ -53,7 +54,7 @@ public class MyAdapter extends ResourceCursorAdapter {
                     notifyDataSetChanged();
                     return true;
                 }
-            });
+            });*/
         }
         else {
             tv.setText("...");
@@ -61,7 +62,7 @@ public class MyAdapter extends ResourceCursorAdapter {
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        ((MainActivity)context).openNewItemDialog();
+                        ((MainActivity)context).openNewItemDialog(-1);
                     }
                 });
             else
@@ -83,10 +84,24 @@ public class MyAdapter extends ResourceCursorAdapter {
         notifyDataSetChanged();
     }
 
+    public void updateItem(Item item){
+        dbh.updateItem(item);
+        changeCursor(this.dbh.getAllItems(currOrder));
+        notifyDataSetChanged();
+    }
+
     //conection to the sort in the databasehelper
     public void sortItems(int sortBy){
         this.currOrder = sortBy;
         changeCursor(this.dbh.getAllItems(sortBy));
         notifyDataSetChanged();
     }
+
+    public void deleteItem(long itemID){
+        dbh.deleteItem(itemID);
+        changeCursor(this.dbh.getAllItems(currOrder));
+        notifyDataSetChanged();
+    }
+
+
 }

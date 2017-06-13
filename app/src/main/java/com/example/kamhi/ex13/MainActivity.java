@@ -7,7 +7,11 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.NumberPicker;
@@ -26,6 +30,7 @@ public class MainActivity extends Activity{
     Button btSortByNumber = null;
     Button btSortByColor = null;
     Button btShuffle = null;
+    int index;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +45,11 @@ public class MainActivity extends Activity{
         btSortByNumber = (Button)findViewById(R.id.number);
         btSortByColor = (Button)findViewById(R.id.color);
 
+        registerForContextMenu(gv);
 
     }
 
-    public void openNewItemDialog(){
+    public void openNewItemDialog(int itemId){
         HashSet<Integer> existingNumbers = this.adapter.getExistingNumbers();
         String[] stringArray = new String[MyAdapter.MAX_NUMBERS + 1 -existingNumbers.size()];
         int i=0,n=0;
@@ -54,7 +60,9 @@ public class MainActivity extends Activity{
             n++;
         }
         Bundle bndl = new Bundle();
+
         bndl.putStringArray("numbers", stringArray);
+        bndl.putInt("id", itemId);
         NewItemDlg dlg = new NewItemDlg(bndl);
         dlg.setCancelable(false);
         dlg.show(getFragmentManager(), "");
@@ -74,10 +82,40 @@ public class MainActivity extends Activity{
         }
     }
 
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        index = info.position;
+        View view = info.targetView;
+        int id = (Integer) view.getTag();
+        if (item.getItemId() == R.id.delete)
+            adapter.deleteItem(id);
+        else{
+            openNewItemDialog(id);
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.item, menu);
+
+       // switch (){
+         //   case R.id.delete:
+           //     adapter.deleteItem(id);
+             //   break;
+           // case R.id.motify:
+             //   break;
+        //}
+    }
+
     private class NewItemDlg extends DialogFragment{
 
         private LineColorPicker colorPicker;
 
+        int itemId;
         private NumberPicker num;
         String[] stringArray=null;
 
@@ -111,8 +149,11 @@ public class MainActivity extends Activity{
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     int index = num.getValue();
-
                                     Item item = new Item(Integer.parseInt(stringArray[index]),colorPicker.getColor());
+                                    if(itemId!=-1){
+                                        item.setId(itemId);
+                                        adapter.updateItem(item);
+                                    }
                                     adapter.addNewItem(item);
                                     dismiss();
                                 }
@@ -126,10 +167,10 @@ public class MainActivity extends Activity{
             colorPicker.setColors(palleteInt);
             colorPicker.setSelectedColorPosition(0);
             this.stringArray = getArguments().getStringArray("numbers");//new String[10];
+            this.itemId = getArguments().getInt("id");
             num.setDividerDrawable(null);
             num.setMaxValue(stringArray.length-1);
             num.setMinValue(0);
-
             num.setDisplayedValues(stringArray);
             return builder.create();
         }

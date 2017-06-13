@@ -142,6 +142,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(ItemEntry.KEY_ID, item.getId());
         values.put(ItemEntry.KEY_COLOR, item.getColor());
+        values.put(ItemEntry.KEY_NUMBER, item.getNumber());
 
         // updating row
         return db.update(ItemEntry.TABLE_ITEMS, values, ItemEntry.KEY_ID + " = ?",
